@@ -13,10 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #=============================================================================
-
-if(NOT CMAKE_CUDA_COMPILER)
-  message(SEND_ERROR "CMake cannot locate a CUDA compiler")
-endif()
+project (CUSPATIAL_TESTS LANGUAGES CUDA CXX)
+cmake_minimum_required(VERSION 3.18.0)
+find_package(GTest REQUIRED)
+find_package(Thrust REQUIRED CONFIG)
+#if(NOT CMAKE_CUDA_COMPILER)
+#  message(SEND_ERROR "CMake cannot locate a CUDA compiler")
+#endif()
 
 ###################################################################################################
 # - common test utils -----------------------------------------------------------------------------
@@ -56,18 +59,37 @@ endfunction(ConfigureTest)
 ###################################################################################################
 # - include paths ---------------------------------------------------------------------------------
 
-include_directories("${THRUST_INCLUDE_DIR}"
-                    "${LIBCUDACXX_INCLUDE_DIR}")
+#get_cmake_property(_variableNames VARIABLES)
+#list (SORT _variableNames)
+#foreach (_variableName ${_variableNames})
+#	message (STATUS "${_variableName}=${${_variableName}}")
+#endforeach()
+message(STATUS "_THRUST_INCLUDE_DIR = ${_THRUST_INCLUDE_DIR}")
+message(STATUS "LIBCUDACXX_INCLUDE_DIR=${LIBCUDACXX_INCLUDE_DIR}")
+message(STATUS "CUDA_INCLUDE_DIRS=" CUDA_INCLUDE_DIRS)
+# Replace with CUDA_INCLUDE_DIRS?
+
+include_directories("${_THRUST_INCLUDE_DIR}")
+include_directories("${LIBCUDACXX_INCLUDE_DIR}")
 
 if(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES)
 	include_directories("${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}")
 endif()
 
+message(STATUS "CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}")
+message(STATUS "CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}")
+message(STATUS "GTEST_INCLUDE_DIRS=${GTEST_INCLUDE_DIRS}")
+message(STATUS "GTEST_INCLUDE_DIR=${GTEST_INCLUDE_DIR}")
+message(STATUS "GTest_INCLUDE_DIRS=${GTEST_INCLUDE_DIRS}")
+message(STATUS "GTest_INCLUDE_DIR=${GTEST_INCLUDE_DIR}")
+message(STATUS "GTest_FOUND=${GTest_FOUND}")
+message(STATUS "RMM_INCLUDE=${RMM_INCLUDE}")
+message(STATUS "CUDF_INCLUDE=${CUDF_INCLUDE}")
 include_directories("${CMAKE_BINARY_DIR}/include"
                     "${CMAKE_SOURCE_DIR}/include"
                     "${CMAKE_SOURCE_DIR}"
                     "${CMAKE_SOURCE_DIR}/src"
-                    "${GTEST_INCLUDE_DIR}"
+		    "${GTEST_INCLUDE_DIRS}"
                     "${RMM_INCLUDE}"
                     "${CUDF_INCLUDE}")
 
