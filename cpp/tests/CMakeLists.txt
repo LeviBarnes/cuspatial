@@ -65,27 +65,13 @@ endfunction(ConfigureTest)
 #foreach (_variableName ${_variableNames})
 #	message (STATUS "${_variableName}=${${_variableName}}")
 #endforeach()
-message(STATUS "_THRUST_INCLUDE_DIR = ${_THRUST_INCLUDE_DIR}")
-message(STATUS "LIBCUDACXX_INCLUDE_DIR=${LIBCUDACXX_INCLUDE_DIR}")
-message(STATUS "CUDA_INCLUDE_DIRS=" CUDA_INCLUDE_DIRS)
-# Replace with CUDA_INCLUDE_DIRS?
 
 include_directories("${_THRUST_INCLUDE_DIR}")
-include_directories("${LIBCUDACXX_INCLUDE_DIR}")
 
 if(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES)
 	include_directories("${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}")
 endif()
 
-message(STATUS "CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}")
-message(STATUS "CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}")
-message(STATUS "GTEST_INCLUDE_DIRS=${GTEST_INCLUDE_DIRS}")
-message(STATUS "GTEST_INCLUDE_DIR=${GTEST_INCLUDE_DIR}")
-message(STATUS "GTest_INCLUDE_DIRS=${GTEST_INCLUDE_DIRS}")
-message(STATUS "GTest_INCLUDE_DIR=${GTEST_INCLUDE_DIR}")
-message(STATUS "GTest_FOUND=${GTest_FOUND}")
-message(STATUS "RMM_INCLUDE=${RMM_INCLUDE}")
-message(STATUS "CUDF_INCLUDE=${CUDF_INCLUDE}")
 include_directories("${CMAKE_BINARY_DIR}/include"
                     "${CMAKE_SOURCE_DIR}/include"
                     "${CMAKE_SOURCE_DIR}"
