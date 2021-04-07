@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #=============================================================================
-project (CUSPATIAL_TESTS LANGUAGES CUDA CXX)
 cmake_minimum_required(VERSION 3.18.0)
-find_package(GTest REQUIRED)
+project (CUSPATIAL_TESTS LANGUAGES CUDA CXX)
+set(CMAKE_CUDA_ARCHITECTURES 75)
+find_package(GTest REQUIRED CONFIG)
 find_package(Thrust REQUIRED CONFIG)
 #if(NOT CMAKE_CUDA_COMPILER)
 #  message(SEND_ERROR "CMake cannot locate a CUDA compiler")
@@ -25,7 +26,7 @@ find_package(Thrust REQUIRED CONFIG)
 # - common test utils -----------------------------------------------------------------------------
 
 find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
-             HINTS "$ENV{CUDF_ROOT}/lib")
+             HINTS "$ENV{CUDF_ROOT}/tests")
 
 message(STATUS "CUDFTESTUTIL: CUDFTESTUTIL_LIBRARY set to ${CUDFTESTUTIL_LIBRARY}")
 
