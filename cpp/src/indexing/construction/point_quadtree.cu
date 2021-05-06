@@ -300,9 +300,148 @@ struct dispatch_construct_quadtree {
                                          mr));
   }
 };
+struct dispatch_construct_edge_quadtree {
+  template <typename T,
+            std::enable_if_t<!std::is_floating_point<T>::value> * = nullptr,
+            typename... Args>
+  inline std::pair<std::unique_ptr<cudf::column>, std::unique_ptr<cudf::table>> operator()(
+    Args &&...)
+  {
+    CUSPATIAL_FAIL("Only floating-point types are supported");
+  }
+
+  template <typename T, std::enable_if_t<std::is_floating_point<T>::value> * = nullptr>
+  inline std::pair<std::unique_ptr<cudf::column>, std::unique_ptr<cudf::table>> operator()(
+    cudf::column_view const &x1,
+    cudf::column_view const &y1,
+    cudf::column_view const &x2,
+    cudf::column_view const &y2,
+    double x_min,
+    double x_max,
+    double y_min,
+    double y_max,
+    double scale,
+    int8_t max_depth,
+    cudf::size_type min_size,
+    rmm::cuda_stream_view stream,
+    rmm::mr::device_memory_resource *mr)
+  {
+    // For edges, make one copy of each edge for each (potential) leaf node
+    // it appears in. Map these copies to a proxy point that will be used
+    // to generate a Morton code for each.
+
+    // First try, make the proxy nodes the node boundary crossings
+
+    // 1. Compute the number of leaf nodes each segment touches 
+    // 2. Fill an array with the index to each copy (0,0,0,1,1,2,2,2,2,2,3,3)
+    //    (does this need to take up memory?)
+    // 3. Fill an array with the proxy modes
+   
+
+    // Construct the full set of non-empty subquadrants starting from the lowest level.
+    // Corresponds to "Phase 1" of quadtree construction in ref.
+    auto quads = make_full_levels<T>(x_proxy,
+                                     y_proxy,
+                                     static_cast<T>(x_min),
+                                     static_cast<T>(x_max),
+                                     static_cast<T>(y_min),
+                                     static_cast<T>(y_max),
+                                     scale,
+                                     max_depth,
+                                     min_size,
+                                     stream,
+                                     mr);
+
+    auto &point_indices    = std::get<0>(quads);
+    auto &quad_keys        = std::get<1>(quads);
+    auto &quad_point_count = std::get<2>(quads);
+    auto &quad_child_count = std::get<3>(quads);
+    auto &quad_levels      = std::get<4>(quads);
+    auto &num_top_quads    = std::get<5>(quads);
+    auto &num_parent_nodes = std::get<6>(quads);
+    auto &level_1_size     = std::get<7>(quads);
+
+    // Optimization: return early if the top level nodes are all leaves
+    if (num_parent_nodes <= 0) {
+      return std::make_pair(std::move(point_indices),
+                            make_leaf_tree(quad_keys, quad_point_count, num_top_quads, stream, mr));
+    }
+
+    // Corresponds to "Phase 2" of quadtree construction in ref.
+    return std::make_pair(std::move(point_indices),
+                          make_quad_tree(quad_keys,
+                                         quad_point_count,
+                                         quad_child_count,
+                                         quad_levels,
+                                         num_parent_nodes,
+                                         max_depth,
+                                         min_size,
+                                         level_1_size,
+                                         stream,
+                                         mr));
+  }
+};
 
 }  // namespace
 
+std::pair<std::unique_ptr<cudf::column>, std::unique_ptr<cudf::table>> quadtree_on_points(
+  cudf::column_view const &x,
+  cudf::column_view const &y,
+  double x_min,
+  double x_max,
+  double y_min,
+  double y_max,
+  double scale,
+  int8_t max_depth,
+  cudf::size_type min_size,
+  rmm::cuda_stream_view stream,
+  rmm::mr::device_memory_resource *mr)
+{
+  return cudf::type_dispatcher(x.type(),
+                               dispatch_construct_quadtree{},
+                               x,
+                               y,
+                               x_min,
+                               x_max,
+                               y_min,
+                               y_max,
+                               scale,
+                               max_depth,
+                               min_size,
+                               stream,
+                               mr);
+}
+std::pair<std::unique_ptr<cudf::column>, std::unique_ptr<cudf::table>> quadtree_on_edges(
+  cudf::column_view const &x1,
+  cudf::column_view const &y1,
+  cudf::column_view const &x2,
+  cudf::column_view const &y2,
+  double x_min,
+  double x_max,
+  double y_min,
+  double y_max,
+  double scale,
+  int8_t max_depth,
+  cudf::size_type min_size,
+  rmm::cuda_stream_view stream,
+  rmm::mr::device_memory_resource *mr)
+{
+  return cudf::type_dispatcher(x.type(),
+                               dispatch_construct_edge_quadtree{},
+                               x1,
+                               y1,
+                               x2,
+                               y2,
+                               x_min,
+                               x_max,
+                               y_min,
+                               y_max,
+                               scale,
+                               max_depth,
+                               min_size,
+                               stream,
+                               mr);
+}
 std::pair<std::unique_ptr<cudf::column>, std::unique_ptr<cudf::table>> quadtree_on_points(
   cudf::column_view const &x,
   cudf::column_view const &y,

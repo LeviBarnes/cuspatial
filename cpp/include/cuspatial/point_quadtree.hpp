@@ -74,3 +74,18 @@ std::pair<std::unique_ptr<cudf::column>, std::unique_ptr<cudf::table>> quadtree_
   rmm::mr::device_memory_resource* mr = rmm::mr::get_current_device_resource());
 
 }  // namespace cuspatial
+std::pair<std::unique_ptr<cudf::column>, std::unique_ptr<cudf::table>> quadtree_on_edges(
+  cudf::column_view const& x1,
+  cudf::column_view const& y1,
+  cudf::column_view const& x2,
+  cudf::column_view const& y2,
+  double x_min,
+  double x_max,
+  double y_min,
+  double y_max,
+  double scale,
+  int8_t max_depth,
+  cudf::size_type min_size,
+  rmm::mr::device_memory_resource* mr = rmm::mr::get_current_device_resource());
+
+}  // namespace cuspatial
